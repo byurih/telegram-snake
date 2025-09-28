@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Snake — Telegram Mini App</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    body { margin:0; display:flex; height:100vh; justify-content:center; align-items:center; background:#111; }
+    canvas { background:#000; image-rendering:pixelated; }
+  </style>
+</head>
+<body>
+  <canvas id="game" width="400" height="400"></canvas>
+  <script>
+    const tg = window.Telegram?.WebApp;
+    tg?.ready();
+
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+
+    const grid = 20;
+    let count = 0;
+    let snake = [{x:160, y:160}];
+    let dx = grid, dy = 0;
+    let food = {x: 320, y: 320};
+
+    function loop() {
+      requestAnimationFrame(loop);
+      if (++count < 6) return;
+      count = 0;
+
+      // move snake
+      let head = {x: snake[0].x + dx, y: snake[0].y + dy};
+      snake.unshift(head);
+
+      // eat food
+      if (head.x === food.x && head.y === food.y) {
+        food.x = Math.floor(Math.random() * 20) * grid;
+        food.y = Math.floor(Math.random() * 20) * grid;
+      } else {
+        snake.pop();
+      }
+
+      // collision
+      if (head.x < 0 || head.y < 0 || head.x >= canvas.width || head.y >= canvas.height ||
+          snake.slice(1).some(p => p.x === head.x && p.y === head.y)) {
+        snake = [{x:160, y:160}];
+        dx = grid; dy = 0;
+      }
+
+      // draw
+      ctx.fillStyle = "#000";
+      ctx.fillRect(0,0,canvas.width,canvas.height);
+
+      ctx.fillStyle = "lime";
+      snake.forEach(p => ctx.fillRect(p.x, p.y, grid-1, grid-1));
+
+      ctx.fillStyle = "red";
+      ctx.fillRect(food.x, food.y, grid-1, grid-1);
+    }
+
+    document.addEventListener("keydown", e => {
+      if (e.key === "ArrowLeft" && dx === 0) {dx = -grid; dy = 0;}
+      if (e.key === "ArrowUp" && dy === 0) {dx = 0; dy = -grid;}
+      if (e.key === "ArrowRight" && dx === 0) {dx = grid; dy = 0;}
+      if (e.key === "ArrowDown" && dy === 0) {dx = 0; dy = grid;}
+    });
+
+    requestAnimationFrame(loop);
+  </script>
+</body>
+</html>
